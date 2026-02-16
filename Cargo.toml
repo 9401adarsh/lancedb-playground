@@ -1,0 +1,12 @@
+[package]
+name = "lancedb-playground"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+arrow-array = "57.3.0"
+arrow-schema = "57.3.0"
+lancedb = "0.26.1"
+tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }
+rand = "0.10"
+arrow-cast = "57.3.0"
