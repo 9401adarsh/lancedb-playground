@@ -1,12 +1,15 @@
 use crate::seed;
-use lancedb;
+use arrow_array::RecordBatch;
+use futures_util::TryStreamExt;
 use lancedb::index::Index;
+use lancedb::query::ExecutableQuery;
+use rand::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-type DbConnectionPool = HashMap<String, lancedb::Connection>;
-type DbSessionPool = HashMap<String, (Arc<lancedb::Session>, lancedb::Connection)>;
-type TableSessionPool =
+pub type DbConnectionPool = HashMap<String, lancedb::Connection>;
+pub type DbSessionPool = HashMap<String, (Arc<lancedb::Session>, lancedb::Connection)>;
+pub type TableSessionPool =
     HashMap<String, (Arc<lancedb::Session>, lancedb::Connection, lancedb::Table)>;
 
 pub fn make_session(
@@ -116,11 +119,8 @@ pub async fn add_table_session_to_pool(
     match setup_table_session(uri, table_name, index_cache_limit, metadata_cache_limit).await {
         Ok((session, connection, table)) => {
             let key = format!("{}::{}", uri, table_name);
-            pool.insert(
-                key.clone(),
-                (session, connection, table),
-            );
-            println!("Table session added to pool for URI: {}", key);
+            pool.insert(key.clone(), (session, connection, table));
+            println!("Table session added to pool for key: {}", key);
             Ok(())
         }
         Err(e) => Err(e),
@@ -130,7 +130,7 @@ pub async fn add_table_session_to_pool(
 pub async fn create_table(
     connection: &lancedb::Connection,
     table_name: &str,
-    num_rows: usize
+    num_rows: usize,
 ) -> Result<lancedb::Table, lancedb::Error> {
     let reader = seed::make_seed_batches(num_rows).expect("Failed to create seed batches");
     let table = connection
@@ -164,18 +164,17 @@ pub async fn open_or_create_seeded_table(
 }
 
 pub async fn ensure_vector_index(
-    table : &lancedb::Table,
+    table: &lancedb::Table,
     table_name: &str,
     column: &str,
-    index: Index
+    index: Index,
 ) -> Result<(), lancedb::Error> {
-    // Placeholder for future implementation of vector index creation
     let columns = vec![column.to_string()];
     let result = table.create_index(&columns, index.clone()).execute().await;
     match result {
         Ok(_) => {
             println!(
-                "Index of type {:?} created successfully on columns {:?} for table '{}'",
+                "Index of type {:?} already exists or created successfully on columns {:?} for table '{}'",
                 index, columns, table_name
             );
             Ok(())
@@ -188,5 +187,40 @@ pub async fn ensure_vector_index(
             Err(e)
         }
     }
-    
+}
+
+pub async fn run_nearest_to_vector_search_k(
+    table: &lancedb::Table,
+    query_vector: Vec<f32>,
+    _column: &str,
+    k: usize,
+) -> Result<Vec<RecordBatch>, lancedb::Error> {
+    // Placeholder for future implementation of vector search
+    let stream = table
+        .query()
+        .nearest_to(query_vector)
+        .unwrap()
+        .nprobes(k)
+        .execute()
+        .await
+        .unwrap();
+
+    let result: Vec<RecordBatch> = stream.try_collect().await.unwrap();
+    Ok(result)
+}
+
+pub fn random_query_vec(dim: usize) -> Vec<f32> {
+    let mut rng = rand::rng();
+    (0..dim)
+        .map(|_| rng.random_range(0.0..1.0) as f32)
+        .collect()
+}
+
+pub async fn get_session_stats(session: &Arc<lancedb::Session>) {
+    // Placeholder for future implementation of session stats retrieval
+    println!("Index stats for session: {:?}", session);
+    println!("{:#?}", session.index_cache_stats().await);
+
+    println!("Metadata stats for session: {:?}", session);
+    println!("{:#?}", session.metadata_cache_stats().await);
 }

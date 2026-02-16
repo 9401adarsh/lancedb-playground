@@ -8,9 +8,10 @@ use arrow_cast::cast;
 use arrow_schema::{DataType, Field, Schema};
 use rand::prelude::*;
 
-pub fn make_seed_batches(num_rows: usize)
--> Result<Box<dyn RecordBatchReader + Send>, Box<dyn std::error::Error + Send + Sync>> {
-    let NUM_SEED_ROWS: usize = num_rows;
+pub fn make_seed_batches(
+    num_rows: usize,
+) -> Result<Box<dyn RecordBatchReader + Send>, Box<dyn std::error::Error + Send + Sync>> {
+    let num_seed_rows: usize = num_rows;
     const VECTOR_DIMENSION: i32 = 64;
 
     // Prefer FixedSizeList for embeddings (dimension is fixed).
@@ -36,7 +37,7 @@ pub fn make_seed_batches(num_rows: usize)
     let values_builder = Float32Builder::new();
     let mut vec_builder = FixedSizeListBuilder::new(values_builder, VECTOR_DIMENSION);
 
-    for i in 0..NUM_SEED_ROWS {
+    for i in 0..num_seed_rows {
         id_builder.append_value(i as i32);
         name_builder.append_value(format!("item_{i}"));
 
