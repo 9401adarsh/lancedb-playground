@@ -20,11 +20,11 @@ pub fn make_session(
     let index_cache_bytes: usize = index_cache_limit.unwrap_or(8 * 1024 * 1024 * 1024); // 8 GB
     let metadata_cache_bytes: usize = metadata_cache_limit.unwrap_or(512 * 1024 * 1024); // 512 MB
     let store_registry = Arc::new(lancedb::ObjectStoreRegistry::default());
-    return Arc::new(lancedb::Session::new(
+    Arc::new(lancedb::Session::new(
         index_cache_bytes,
         metadata_cache_bytes,
         store_registry,
-    ));
+    ))
 }
 
 pub async fn connect_to_db(
@@ -33,7 +33,7 @@ pub async fn connect_to_db(
 ) -> Result<lancedb::Connection, lancedb::Error> {
     // construct the URI for the database and connect with the provided session and execute the connection
     let db_connect_handle = lancedb::connect(uri).session(session).execute().await;
-    return db_connect_handle;
+    db_connect_handle
 }
 
 pub async fn connect_to_db_no_session(
@@ -60,7 +60,7 @@ pub async fn setup_no_session(
 }
 
 pub fn create_connection_pool() -> DbConnectionPool {
-    return HashMap::new();
+    HashMap::new()
 }
 
 pub async fn add_connection_to_pool(

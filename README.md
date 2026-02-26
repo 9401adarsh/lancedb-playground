@@ -1,15 +1,82 @@
 ## Session Cache Benchmarking for Lance DB Rust SDK
 
-This repository is a first attempt at creating a LanceDB session cache benchmark suite. We try to study the effects b/w allocating a session cache in a global fashion (shared across DBs), a session cache per DB, and a session cache for each table in a DB. 
+This repository benchmarks LanceDB session cache strategies using the Rust SDK. It studies the performance differences between:
 
-The following bench suite has been implemented in Rust. 
+- **No explicit session** — letting the library manage its own default session
+- **Global session** — one shared session across all DBs
+- **DB session** — one session per database
+- **Table session** — one session per (database, table) pair
 
-Please ensure you have `cargo` setup for running this project.
+## Prerequisites
 
-## Running the test suite
+- [Rust toolchain](https://rustup.rs/) (`cargo`)
 
-- First create a `data/` directory under project root. Under `data/` create `db1/` and `db2/` respectively. 
-  
-- Run the project to seed data into the DBs under `db1/` and `db2/` /using `NUM_SEED_ROWS=<num of rows you want to seed> cargo run seed`.
+## Quick Start
 
-- Following this run the project in various modes `cargo run global_session` (to observe session cache stats when one session is shared amongst multiple dbs), `cargo run db_session` (to observe session cache behaviour when a session is generated for every db), and `cargo run table_session` (to observe session cache behavior when a session is created for every table). 
+### 1. Seed the databases
+
+Create test data in `./data/db1/` and `./data/db2/` (directories are created automatically):
+
+```bash
+# Seed with default 10,000 rows per table
+cargo run -- seed
+
+# Or specify a custom row count
+NUM_SEED_ROWS=50000 cargo run -- seed
+```
+
+### 2. Run benchmarks
+
+```bash
+cargo run -- <mode> [iterations]
+```
+
+| Argument | Description |
+|---|---|
+| `mode` | **Required.** One of: `no_session`, `global_session`, `db_session`, `table_session` |
+| `iterations` | *Optional.* Number of times to run the test (default: `1`) |
+
+#### Examples
+
+```bash
+# Run no_session mode once
+cargo run -- no_session
+
+# Run global_session mode 5 times
+cargo run -- global_session 5
+
+# Run db_session mode 3 times
+cargo run -- db_session 3
+
+# Run table_session mode 10 times
+cargo run -- table_session 10
+```
+
+### 3. View logs
+
+All benchmark output is logged to both stdout and a timestamped file in `./logs/`:
+
+```
+logs/no_session_20260226_154336.log
+logs/global_session_20260226_155012.log
+```
+
+## Modes
+
+| Mode | CLI arg | Description |
+|---|---|---|
+| **Seed** | `seed` | Populates `db1` and `db2` with test tables (`table_1`, `table_2`). Run once before benchmarking. |
+| **No Session** | `no_session` | Connects without an explicit session — the library creates its own default internally. |
+| **Global Session** | `global_session` | Creates one session shared across all databases. |
+| **DB Session** | `db_session` | Creates a separate session for each database. |
+| **Table Session** | `table_session` | Creates a separate session for each (database, table) pair. |
+
+## Project Structure
+
+```
+src/
+├── main.rs    # CLI parsing, test mode orchestration, iteration loop
+├── utils.rs   # Session/connection setup, index management, vector search
+├── seed.rs    # Test data generation (Arrow RecordBatch)
+└── log.rs     # Tee-logging to stdout + file
+```

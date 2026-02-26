@@ -154,7 +154,7 @@ async fn perform_db_session_test() {
                 uri, _session
             );
             log_println!("[db_session] After Search: Session Stats:");
-            utils::get_session_stats(&_session).await;
+            utils::get_session_stats(_session).await;
         }
     }
 }
@@ -198,7 +198,7 @@ async fn perform_table_session_test() {
             key, _session
         );
         log_println!("[table_session] After Search: Session Stats:");
-        utils::get_session_stats(&_session).await;
+        utils::get_session_stats(_session).await;
     }
 }
 
