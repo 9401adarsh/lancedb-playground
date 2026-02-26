@@ -36,6 +36,29 @@ pub async fn connect_to_db(
     return db_connect_handle;
 }
 
+pub async fn connect_to_db_no_session(
+    uri: &str,
+) -> Result<lancedb::Connection, lancedb::Error> {
+    // Connect without an explicit session — the library creates a default one internally
+    lancedb::connect(uri).execute().await
+}
+
+pub async fn setup_no_session(
+    uris: &[String],
+) -> Result<DbConnectionPool, lancedb::Error> {
+    let mut pool = create_connection_pool();
+    for uri in uris.iter() {
+        match connect_to_db_no_session(uri).await {
+            Ok(connection) => {
+                println!("[no_session] Connected to {} (default session)", uri);
+                pool.insert(uri.to_string(), connection);
+            }
+            Err(e) => eprintln!("[no_session] Failed to connect to {}: {}", uri, e),
+        }
+    }
+    Ok(pool)
+}
+
 pub fn create_connection_pool() -> DbConnectionPool {
     return HashMap::new();
 }

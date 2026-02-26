@@ -3174,6 +3174,7 @@ dependencies = [
  "arrow-array",
  "arrow-cast",
  "arrow-schema",
+ "chrono",
  "futures",
  "futures-util",
  "lancedb",
