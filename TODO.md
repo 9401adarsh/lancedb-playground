@@ -7,3 +7,4 @@
 - [ ] Python Scripts for logging.
 - [x] Add a mode without no session.
 - [x] Convert to a multi-threaded test runner. To Discuss - if current interpretation of multi-threaded is correct.
+- [ ] What to benchmark? What kind of workloads?
