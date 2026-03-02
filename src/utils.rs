@@ -1,3 +1,4 @@
+use crate::log_println;
 use crate::seed;
 use arrow_array::RecordBatch;
 use futures_util::TryStreamExt;
@@ -218,7 +219,6 @@ pub async fn run_nearest_to_vector_search_k(
     _column: &str,
     k: usize,
 ) -> Result<Vec<RecordBatch>, lancedb::Error> {
-    // Placeholder for future implementation of vector search
     let stream = table
         .query()
         .nearest_to(query_vector)
@@ -240,10 +240,6 @@ pub fn random_query_vec(dim: usize) -> Vec<f32> {
 }
 
 pub async fn get_session_stats(session: &Arc<lancedb::Session>) {
-    // Placeholder for future implementation of session stats retrieval
-    println!("Index stats for session: {:?}", session);
-    println!("{:#?}", session.index_cache_stats().await);
-
-    println!("Metadata stats for session: {:?}", session);
-    println!("{:#?}", session.metadata_cache_stats().await);
+    log_println!("Index cache stats: {:#?}", session.index_cache_stats().await);
+    log_println!("Metadata cache stats: {:#?}", session.metadata_cache_stats().await);
 }
